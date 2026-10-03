@@ -1,26 +1,314 @@
-<html>
+<!DOCTYPE html>
+<html lang="ja">
 <head>
-  <meta charset="utf-8">
-<title>Tutorial</title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アルボバス時刻表</title>
+    <style>
+        :root {
+            --primary-blue: #0056b3;
+            --green-bg: #e8f5e9;
+            --green-border: #2e7d32;
+            --green-header: #1b5e20;
+            --yellow-bg: #fffde7;
+            --yellow-border: #fbc02d;
+            --yellow-header: #f57f17;
+            --pink-bg: #fbe9e7;
+            --red-text: #c62828;
+            --border-color: #444;
+        }
 
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
+        * {
+            box-sizing: border-box;
+        }
 
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="icon.png">
-  <!-- Place favicon.ico in the root directory -->
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 12px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
 
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
 
-  <meta name="theme-color" content="#fafafa">
+        .header {
+            background-color: var(--primary-blue);
+            color: white;
+            text-align: center;
+            padding: 12px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+
+        .sub-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 6px 12px;
+            background-color: #f0f4f8;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .revision-date {
+            font-size: 0.85rem;
+            color: var(--red-text);
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: #e0e0e0;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #555;
+        }
+
+        .tab-btn.active {
+            background-color: white;
+            border-bottom: 3px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 12px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .route-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .route-to-station {
+            background-color: var(--green-bg);
+            color: var(--green-header);
+            border: 1px solid var(--green-border);
+        }
+
+        .route-to-arbo {
+            background-color: var(--yellow-bg);
+            color: var(--yellow-header);
+            border: 1px solid var(--yellow-border);
+        }
+
+        .timetable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .timetable th, .timetable td {
+            border: 1px solid var(--border-color);
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .timetable th {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .timetable th.inagi {
+            background-color: #f3e5f5;
+            width: 50%;
+        }
+
+        .timetable th.minamitama {
+            background-color: var(--pink-bg);
+            color: var(--red-text);
+            width: 35%;
+        }
+
+        .time-col {
+            width: 15%;
+            font-weight: bold;
+            background-color: #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .minutes {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            padding-left: 6px;
+            flex-wrap: wrap;
+        }
+
+        .minute-item.inagi-time {
+            color: #000;
+        }
+
+        .minute-item.minamitama-time {
+            color: var(--red-text);
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<h1>Hello World Tutorial</h1>
-This is my tutorial web site.
-Quick setup — if you’ve done this kind of thing before.
+
+<div class="container">
+    <div class="header">
+        <h1>アルボバス時刻表</h1>
+    </div>
+
+    <div class="sub-header">
+        <div class="revision-date">2024年4月1日改正</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(event, 'to-station')">アルボの丘 ⇒ 各駅</button>
+        <button class="tab-btn" onclick="switchTab(event, 'to-arbo')">各駅 ⇒ アルボの丘</button>
+    </div>
+
+    <!-- アルボの丘 ⇒ 各駅 -->
+    <div id="to-station" class="tab-content active">
+        <div class="route-header route-to-station">
+            アルボの丘 ⇒ 各駅
+        </div>
+
+        <table class="timetable">
+            <thead>
+                <tr>
+                    <th class="time-col">時</th>
+                    <th class="inagi">稲城駅行</th>
+                    <th class="minamitama">南多摩駅行</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="time-col">6時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">00</span><span class="minute-item inagi-time">15</span><span class="minute-item inagi-time">30</span><span class="minute-item inagi-time">45</span></div></td>
+                    <td><div class="minutes"></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">7時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">00</span><span class="minute-item inagi-time">22</span><span class="minute-item inagi-time">36</span><span class="minute-item inagi-time">51</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">14</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">8時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">06</span><span class="minute-item inagi-time">21</span><span class="minute-item inagi-time">36</span><span class="minute-item inagi-time">51</span></div></td>
+                    <td><div class="minutes"></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">18時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">27</span><span class="minute-item inagi-time">54</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">46</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">19時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">54</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">21</span><span class="minute-item minamitama-time">46</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">20時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">54</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">21</span><span class="minute-item minamitama-time">46</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">21時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">46</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">21</span></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 各駅 ⇒ アルボの丘 -->
+    <div id="to-arbo" class="tab-content">
+        <div class="route-header route-to-arbo">
+            各駅 ⇒ アルボの丘
+        </div>
+
+        <table class="timetable">
+            <thead>
+                <tr>
+                    <th class="time-col">時</th>
+                    <th class="inagi">稲城駅発</th>
+                    <th class="minamitama">南多摩駅発</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="time-col">6時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">07</span><span class="minute-item inagi-time">22</span><span class="minute-item inagi-time">37</span><span class="minute-item inagi-time">52</span></div></td>
+                    <td><div class="minutes"></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">7時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">07</span><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">43</span><span class="minute-item inagi-time">58</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">19</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">8時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">13</span><span class="minute-item inagi-time">28</span><span class="minute-item inagi-time">43</span></div></td>
+                    <td><div class="minutes"></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">18時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">34</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">24</span><span class="minute-item minamitama-time">51</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">19時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">04</span><span class="minute-item inagi-time">36</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">26</span><span class="minute-item minamitama-time">51</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">20時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">04</span><span class="minute-item inagi-time">36</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">26</span><span class="minute-item minamitama-time">51</span></div></td>
+                </tr>
+                <tr>
+                    <td class="time-col">21時</td>
+                    <td><div class="minutes"><span class="minute-item inagi-time">04</span><span class="minute-item inagi-time">37</span><span class="minute-item inagi-time">53</span></div></td>
+                    <td><div class="minutes"><span class="minute-item minamitama-time">26</span></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function switchTab(e, tabId) {
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(button => button.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        e.currentTarget.classList.add('active');
+    }
+</script>
+
 </body>
 </html>
