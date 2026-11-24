@@ -176,6 +176,19 @@ let currentStation = "minamitama";
 
 function pad(n) { return String(n).padStart(2, "0"); }
 
+// 閲覧者のタイムゾーンに依らず、日本時間で判定する
+function tokyoTime() {
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Tokyo", hour: "numeric", minute: "numeric", hourCycle: "h23"
+    }).formatToParts(new Date());
+    let h = 0, m = 0;
+    parts.forEach(p => {
+        if (p.type === "hour") h = parseInt(p.value, 10) % 24;
+        if (p.type === "minute") m = parseInt(p.value, 10);
+    });
+    return { hours: h, minutes: m };
+}
+
 function nextDeparture(dirObj, nowMin) {
     const times = [];
     dirObj.rows.forEach(([h, ms]) => ms.forEach(m => times.push(h * 60 + m)));
@@ -185,12 +198,12 @@ function nextDeparture(dirObj, nowMin) {
 }
 
 function render() {
-    const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const now = tokyoTime();
+    const nowMin = now.hours * 60 + now.minutes;
     const st = STATIONS[currentStation];
 
     document.getElementById("clock").textContent =
-        "現在 " + now.getHours() + ":" + pad(now.getMinutes());
+        "現在 " + now.hours + ":" + pad(now.minutes) + "（日本時間）";
 
     // 次のバス
     const nb = document.getElementById("next-body");
@@ -230,7 +243,7 @@ function render() {
                 else if (t <= nowMin) cls += " past";
                 return '<span class="' + cls + '">' + pad(m) + '</span>';
             }).join("");
-            rowsHtml += '<tr' + (h === now.getHours() ? ' class="now"' : '') + '>' +
+            rowsHtml += '<tr' + (h === now.hours ? ' class="now"' : '') + '>' +
                 '<td class="hour">' + h + '<small> 時</small></td>' +
                 '<td><div class="mins">' + chips + '</div></td></tr>';
         });
