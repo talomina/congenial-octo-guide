@@ -1,314 +1,254 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>アルボバス時刻表</title>
-    <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アルボバス時刻表</title>
+<style>
+    :root {
+        --accent: #0e7a5f;
+        --accent-soft: #e3f4ee;
+        --ink: #1c2420;
+        --muted: #68736d;
+        --line: #e2e8e4;
+        --card: #ffffff;
+        --page: #eef3f0;
+        --next-bg: #0b3d2e;
+        --radius: 16px;
+    }
+    @media (prefers-color-scheme: dark) {
         :root {
-            --primary-blue: #0056b3;
-            --green-bg: #e8f5e9;
-            --green-border: #2e7d32;
-            --green-header: #1b5e20;
-            --yellow-bg: #fffde7;
-            --yellow-border: #fbc02d;
-            --yellow-header: #f57f17;
-            --pink-bg: #fbe9e7;
-            --red-text: #c62828;
-            --border-color: #444;
+            --accent: #2fbf9a;
+            --accent-soft: #14332a;
+            --ink: #e8efec;
+            --muted: #9aa8a1;
+            --line: #2a3530;
+            --card: #171d1a;
+            --page: #0e1210;
+            --next-bg: #0f2e24;
         }
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+        background: var(--page);
+        color: var(--ink);
+    }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 0 14px 28px; }
 
-        * {
-            box-sizing: border-box;
-        }
+    header.hero {
+        margin: 0 -14px;
+        padding: 26px 20px 20px;
+        background: linear-gradient(135deg, #0b3d2e 0%, #0e7a5f 55%, #12a594 100%);
+        color: #fff;
+    }
+    .hero-inner { max-width: 612px; margin: 0 auto; }
+    .hero .kicker { font-size: .78rem; letter-spacing: .18em; opacity: .85; margin: 0 0 6px; }
+    .hero h1 { margin: 0; font-size: 1.65rem; font-weight: 800; letter-spacing: .02em; display: flex; align-items: center; gap: 10px; }
+    .hero h1 svg { flex: none; }
+    .hero .meta { margin: 8px 0 0; font-size: .85rem; opacity: .9; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .hero .clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1rem; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 12px;
-            background-color: #f4f6f9;
-            color: #333;
-        }
+    .seg {
+        display: flex; gap: 4px;
+        background: var(--card); border: 1px solid var(--line);
+        border-radius: 999px; padding: 4px;
+        margin: -18px 0 14px; position: relative;
+        box-shadow: 0 6px 18px rgba(11, 61, 46, .12);
+    }
+    .seg button {
+        flex: 1; border: 0; background: transparent; color: var(--muted);
+        font: inherit; font-weight: 700; font-size: .95rem;
+        padding: 10px 6px; border-radius: 999px; cursor: pointer;
+        transition: background .15s, color .15s;
+    }
+    .seg button.active { background: var(--accent); color: #fff; }
 
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
+    .next-card {
+        background: var(--next-bg); color: #eafaf3;
+        border-radius: var(--radius); padding: 16px 18px 14px; margin-bottom: 14px;
+    }
+    .next-card h2 { margin: 0 0 10px; font-size: .8rem; letter-spacing: .14em; font-weight: 700; opacity: .85; }
+    .next-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.14); }
+    .next-row:first-of-type { border-top: 0; }
+    .next-station { font-weight: 700; font-size: .92rem; white-space: nowrap; }
+    .next-time { font-size: 1.7rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+    .next-time small { font-size: .8rem; font-weight: 600; opacity: .75; margin-right: 6px; }
+    .next-count { font-size: .9rem; font-weight: 700; color: #ffd166; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-        .header {
-            background-color: var(--primary-blue);
-            color: white;
-            text-align: center;
-            padding: 12px;
-        }
+    .dir-title {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 1rem; font-weight: 800; margin: 18px 2px 8px;
+    }
+    .dir-title::before {
+        content: ""; width: 9px; height: 9px; border-radius: 50%;
+        background: var(--accent); flex: none;
+    }
+    .dir-title:first-of-type { margin-top: 2px; }
 
-        .header h1 {
-            margin: 0;
-            font-size: 1.3rem;
-            letter-spacing: 1px;
-        }
-
-        .sub-header {
-            display: flex;
-            justify-content: flex-end;
-            padding: 6px 12px;
-            background-color: #f0f4f8;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .revision-date {
-            font-size: 0.85rem;
-            color: var(--red-text);
-            font-weight: bold;
-        }
-
-        .tabs {
-            display: flex;
-            background-color: #e0e0e0;
-            border-bottom: 2px solid #ccc;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px 8px;
-            text-align: center;
-            background: none;
-            border: none;
-            font-size: 0.95rem;
-            font-weight: bold;
-            cursor: pointer;
-            color: #555;
-        }
-
-        .tab-btn.active {
-            background-color: white;
-            border-bottom: 3px solid var(--primary-blue);
-            color: var(--primary-blue);
-        }
-
-        .tab-content {
-            display: none;
-            padding: 12px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .route-header {
-            text-align: center;
-            font-weight: bold;
-            font-size: 1rem;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        .route-to-station {
-            background-color: var(--green-bg);
-            color: var(--green-header);
-            border: 1px solid var(--green-border);
-        }
-
-        .route-to-arbo {
-            background-color: var(--yellow-bg);
-            color: var(--yellow-header);
-            border: 1px solid var(--yellow-border);
-        }
-
-        .timetable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .timetable th, .timetable td {
-            border: 1px solid var(--border-color);
-            padding: 6px 8px;
-            text-align: center;
-        }
-
-        .timetable th {
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .timetable th.inagi {
-            background-color: #f3e5f5;
-            width: 50%;
-        }
-
-        .timetable th.minamitama {
-            background-color: var(--pink-bg);
-            color: var(--red-text);
-            width: 35%;
-        }
-
-        .time-col {
-            width: 15%;
-            font-weight: bold;
-            background-color: #f0f0f0;
-            font-size: 0.9rem;
-        }
-
-        .minutes {
-            display: flex;
-            justify-content: flex-start;
-            gap: 12px;
-            padding-left: 6px;
-            flex-wrap: wrap;
-        }
-
-        .minute-item.inagi-time {
-            color: #000;
-        }
-
-        .minute-item.minamitama-time {
-            color: var(--red-text);
-            font-weight: bold;
-        }
-    </style>
+    .card {
+        background: var(--card); border: 1px solid var(--line);
+        border-radius: var(--radius); overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; text-align: left; vertical-align: top; }
+    thead th {
+        font-size: .82rem; color: var(--muted); font-weight: 700;
+        border-bottom: 1px solid var(--line); background: transparent;
+    }
+    tbody tr { border-bottom: 1px solid var(--line); }
+    tbody tr:last-child { border-bottom: 0; }
+    tbody tr.now { background: var(--accent-soft); }
+    td.hour {
+        font-weight: 800; font-size: 1.05rem; white-space: nowrap; width: 3.6em;
+        font-variant-numeric: tabular-nums;
+    }
+    td.hour small { font-size: .72rem; color: var(--muted); font-weight: 600; }
+    .mins { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+    .min {
+        font-size: 1.12rem; font-weight: 600; font-variant-numeric: tabular-nums;
+        padding: 1px 7px; border-radius: 8px; line-height: 1.5;
+    }
+    .min.past { color: var(--muted); opacity: .55; font-weight: 500; }
+    .min.next {
+        background: var(--accent); color: #fff; font-weight: 800;
+        box-shadow: 0 2px 8px rgba(14, 122, 95, .35);
+    }
+    footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: .8rem; line-height: 1.7; }
+</style>
 </head>
 <body>
-
-<div class="container">
-    <div class="header">
-        <h1>アルボバス時刻表</h1>
-    </div>
-
-    <div class="sub-header">
-        <div class="revision-date">2024年4月1日改正</div>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab(event, 'to-station')">アルボの丘 ⇒ 各駅</button>
-        <button class="tab-btn" onclick="switchTab(event, 'to-arbo')">各駅 ⇒ アルボの丘</button>
-    </div>
-
-    <!-- アルボの丘 ⇒ 各駅 -->
-    <div id="to-station" class="tab-content active">
-        <div class="route-header route-to-station">
-            アルボの丘 ⇒ 各駅
+<div class="wrap">
+    <header class="hero">
+        <div class="hero-inner">
+            <p class="kicker">ARBO BUS TIMETABLE</p>
+            <h1>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2.5" fill="#ffffff" opacity="0.95"/><rect x="5.5" y="6.5" width="5.5" height="4" rx="0.8" fill="#0e7a5f"/><rect x="13" y="6.5" width="5.5" height="4" rx="0.8" fill="#0e7a5f"/><circle cx="7.5" cy="19" r="1.8" fill="#ffffff"/><circle cx="16.5" cy="19" r="1.8" fill="#ffffff"/><rect x="3" y="17" width="18" height="1.4" fill="#ffffff" opacity="0.7"/></svg>
+                アルボバス時刻表
+            </h1>
+            <p class="meta"><span>2024年4月1日改正</span><span class="clock" id="clock"></span></p>
         </div>
+    </header>
 
-        <table class="timetable">
-            <thead>
-                <tr>
-                    <th class="time-col">時</th>
-                    <th class="inagi">稲城駅行</th>
-                    <th class="minamitama">南多摩駅行</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="time-col">6時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">00</span><span class="minute-item inagi-time">15</span><span class="minute-item inagi-time">30</span><span class="minute-item inagi-time">45</span></div></td>
-                    <td><div class="minutes"></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">7時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">00</span><span class="minute-item inagi-time">22</span><span class="minute-item inagi-time">36</span><span class="minute-item inagi-time">51</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">14</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">8時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">06</span><span class="minute-item inagi-time">21</span><span class="minute-item inagi-time">36</span><span class="minute-item inagi-time">51</span></div></td>
-                    <td><div class="minutes"></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">18時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">27</span><span class="minute-item inagi-time">54</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">46</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">19時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">54</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">21</span><span class="minute-item minamitama-time">46</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">20時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">54</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">21</span><span class="minute-item minamitama-time">46</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">21時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">46</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">21</span></div></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <nav class="seg" aria-label="駅の切り替え">
+        <button id="btn-minamitama" class="active" onclick="switchStation('minamitama')">南多摩駅 発着</button>
+        <button id="btn-inagi" onclick="switchStation('inagi')">稲城駅 発着</button>
+    </nav>
 
-    <!-- 各駅 ⇒ アルボの丘 -->
-    <div id="to-arbo" class="tab-content">
-        <div class="route-header route-to-arbo">
-            各駅 ⇒ アルボの丘
-        </div>
+    <section class="next-card" aria-live="polite">
+        <h2>次のバス</h2>
+        <div id="next-body"></div>
+    </section>
 
-        <table class="timetable">
-            <thead>
-                <tr>
-                    <th class="time-col">時</th>
-                    <th class="inagi">稲城駅発</th>
-                    <th class="minamitama">南多摩駅発</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="time-col">6時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">07</span><span class="minute-item inagi-time">22</span><span class="minute-item inagi-time">37</span><span class="minute-item inagi-time">52</span></div></td>
-                    <td><div class="minutes"></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">7時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">07</span><span class="minute-item inagi-time">29</span><span class="minute-item inagi-time">43</span><span class="minute-item inagi-time">58</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">19</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">8時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">13</span><span class="minute-item inagi-time">28</span><span class="minute-item inagi-time">43</span></div></td>
-                    <td><div class="minutes"></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">18時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">34</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">24</span><span class="minute-item minamitama-time">51</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">19時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">04</span><span class="minute-item inagi-time">36</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">26</span><span class="minute-item minamitama-time">51</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">20時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">04</span><span class="minute-item inagi-time">36</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">26</span><span class="minute-item minamitama-time">51</span></div></td>
-                </tr>
-                <tr>
-                    <td class="time-col">21時</td>
-                    <td><div class="minutes"><span class="minute-item inagi-time">04</span><span class="minute-item inagi-time">37</span><span class="minute-item inagi-time">53</span></div></td>
-                    <td><div class="minutes"><span class="minute-item minamitama-time">26</span></div></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <div id="tables"></div>
+
+    <footer>
+        時刻は発車時刻です。道路事情により遅れる場合があります。<br>
+        運行のない時間帯は掲載していません。
+    </footer>
 </div>
 
 <script>
-    function switchTab(e, tabId) {
-        const contents = document.querySelectorAll('.tab-content');
-        contents.forEach(content => content.classList.remove('active'));
-
-        const buttons = document.querySelectorAll('.tab-btn');
-        buttons.forEach(button => button.classList.remove('active'));
-
-        document.getElementById(tabId).classList.add('active');
-        e.currentTarget.classList.add('active');
+const STATIONS = {
+    "minamitama": {
+        name: "南多摩駅",
+        dirs: [
+            { label: "南多摩駅発 ⇒ アルボの丘", short: "駅発（アルボの丘ゆき）",
+              rows: [[7, [19]], [18, [24, 51]], [19, [26, 51]], [20, [26, 51]], [21, [26]]] },
+            { label: "アルボの丘発 ⇒ 南多摩駅行", short: "アルボの丘発（駅ゆき）",
+              rows: [[7, [14]], [18, [46]], [19, [21, 46]], [20, [21, 46]], [21, [21]]] }
+        ]
+    },
+    "inagi": {
+        name: "稲城駅",
+        dirs: [
+            { label: "稲城駅発 ⇒ アルボの丘", short: "駅発（アルボの丘ゆき）",
+              rows: [[6, [7, 22, 37, 52]], [7, [7, 29, 43, 58]], [8, [13, 28, 43]], [18, [34]], [19, [4, 36]], [20, [4, 36]], [21, [4, 37, 53]]] },
+            { label: "アルボの丘発 ⇒ 稲城駅行", short: "アルボの丘発（駅ゆき）",
+              rows: [[6, [0, 15, 30, 45]], [7, [0, 22, 36, 51]], [8, [6, 21, 36, 51]], [18, [27, 54]], [19, [29, 54]], [20, [29, 54]], [21, [29, 46]]] }
+        ]
     }
-</script>
+};
 
+let currentStation = "minamitama";
+
+function pad(n) { return String(n).padStart(2, "0"); }
+
+function nextDeparture(dirObj, nowMin) {
+    const times = [];
+    dirObj.rows.forEach(([h, ms]) => ms.forEach(m => times.push(h * 60 + m)));
+    times.sort((a, b) => a - b);
+    for (const t of times) if (t > nowMin) return { at: t, tomorrow: false };
+    return { at: times[0], tomorrow: true };
+}
+
+function render() {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const st = STATIONS[currentStation];
+
+    document.getElementById("clock").textContent =
+        "現在 " + now.getHours() + ":" + pad(now.getMinutes());
+
+    // 次のバス
+    const nb = document.getElementById("next-body");
+    nb.innerHTML = "";
+    st.dirs.forEach(d => {
+        const nx = nextDeparture(d, nowMin);
+        const row = document.createElement("div");
+        row.className = "next-row";
+        const wait = nx.tomorrow ? (nx.at + 1440 - nowMin) : (nx.at - nowMin);
+        row.innerHTML =
+            '<span class="next-station">' + d.short + '</span>' +
+            '<span class="next-time">' + (nx.tomorrow ? '<small>明日</small>' : '') +
+            Math.floor(nx.at / 60) + ':' + pad(nx.at % 60) + '</span>' +
+            '<span class="next-count">' + (nx.tomorrow ? '本日は終了' : 'あと ' + wait + ' 分') + '</span>';
+        nb.appendChild(row);
+    });
+
+    // 時刻表（方向ごと）
+    const host = document.getElementById("tables");
+    host.innerHTML = "";
+    st.dirs.forEach(d => {
+        const nx = nextDeparture(d, nowMin);
+        const nextAt = nx.tomorrow ? -1 : nx.at;
+        const title = document.createElement("h3");
+        title.className = "dir-title";
+        title.textContent = d.label;
+        host.appendChild(title);
+
+        const card = document.createElement("section");
+        card.className = "card";
+        let rowsHtml = "";
+        d.rows.forEach(([h, ms]) => {
+            const chips = ms.map(m => {
+                const t = h * 60 + m;
+                let cls = "min";
+                if (t === nextAt) cls += " next";
+                else if (t <= nowMin) cls += " past";
+                return '<span class="' + cls + '">' + pad(m) + '</span>';
+            }).join("");
+            rowsHtml += '<tr' + (h === now.getHours() ? ' class="now"' : '') + '>' +
+                '<td class="hour">' + h + '<small> 時</small></td>' +
+                '<td><div class="mins">' + chips + '</div></td></tr>';
+        });
+        card.innerHTML = '<table><thead><tr><th>時</th><th>分</th></tr></thead><tbody>' +
+            rowsHtml + '</tbody></table>';
+        host.appendChild(card);
+    });
+}
+
+function switchStation(key) {
+    currentStation = key;
+    document.getElementById("btn-minamitama").classList.toggle("active", key === "minamitama");
+    document.getElementById("btn-inagi").classList.toggle("active", key === "inagi");
+    render();
+}
+
+render();
+setInterval(render, 20000);
+</script>
 </body>
 </html>
